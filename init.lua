@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -154,7 +154,7 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+-- vim.opt.scrolloff = 10
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -685,6 +685,7 @@ require('lazy').setup({
             },
           },
         },
+        pyright = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -703,11 +704,14 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'prettier', -- Used to format web development related, e.g. TS, JS, Markdown, css, etc.
+        'black', -- Python
+        'tailwindcss',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        ensure_installed = { 'tailwindcss' }, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
         handlers = {
           function(server_name)
@@ -757,6 +761,10 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        python = { 'black' },
+        javascript = { 'prettier', 'tailwindcss' },
+        typescript = { 'prettier', 'tailwindcss' },
+        markdown = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -998,11 +1006,32 @@ require('lazy').setup({
       lazy = '💤 ',
     },
   },
+  -- Find workspace specific nvim configuration
   vim.api.nvim_create_autocmd({ 'VimEnter' }, {
     callback = function()
-      local project_config = vim.fn.getcwd() .. '/.nvim/nvim-dap.lua'
-      if vim.fn.filereadable(project_config) == 1 then
-        dofile(project_config)
+      local function load_lua_files(dir)
+        local files = vim.fn.glob(dir .. '/*.lua', false, true)
+        local count = #files
+        for _, file in ipairs(files) do
+          print('Loading' .. file .. ' configuration file')
+          dofile(file)
+        end
+
+        local subdirs = vim.fn.glob(dir .. '/*', false, true)
+        for _, subdir in ipairs(subdirs) do
+          if vim.fn.isdirectory(subdir) == 1 then
+            count = count + load_lua_files(subdir)
+          end
+        end
+
+        return count
+      end
+      local workspace_dir = vim.fn.getcwd()
+      local nvim_dir = workspace_dir .. '/.nvim'
+
+      if vim.fn.isdirectory(nvim_dir) == 1 then
+        local loaded_files = load_lua_files(nvim_dir)
+        print('Loaded' .. loaded_files .. ' configuration files from workspace .nvim')
       end
     end,
   }),

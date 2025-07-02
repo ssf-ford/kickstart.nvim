@@ -215,6 +215,24 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+local function get_python_path()
+  if vim.env.VIRTUAL_ENV then
+    return vim.env.VIRTUAL_ENV .. '/bin/python'
+  end
+
+  local cwd = vim.fn.getcwd()
+  local venv_path = cwd .. '/venv/bin/python'
+  if vim.fn.filereadable(venv_path) == 1 then
+    return venv_path
+  end
+
+  venv_path = cwd .. '/.venv/bin/python'
+  if vim.fn.filereadable(venv_path) == 1 then
+    return venv_path
+  end
+
+  return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
+end
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -685,7 +703,17 @@ require('lazy').setup({
             },
           },
         },
-        pyright = {},
+        pyright = {
+          settings = {
+            python = {
+              pythonPath = get_python_path(),
+              analysis = {
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+              },
+            },
+          },
+        },
       }
 
       -- Ensure the servers and tools above are installed

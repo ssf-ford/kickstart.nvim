@@ -99,6 +99,7 @@ return {
         'node',
         'python',
         'stylua',
+        'codelldb',
       },
     }
 
@@ -108,6 +109,26 @@ return {
       -- Set icons to characters that are more likely to work in every terminal.
       --    Feel free to remove or use ones that you like more! :)
       --    Don't feel like these are good choices.
+      layouts = {
+        {
+          elements = {
+            { id = 'scopes', size = 0.25 },
+            { id = 'breakpoints', size = 0.25 },
+            { id = 'stacks', size = 0.25 },
+            { id = 'watches', size = 0.25 },
+          },
+          position = 'left',
+          size = 60,
+        },
+        {
+          elements = {
+            { id = 'repl', size = 0.5 },
+            { id = 'console', size = 0.5 },
+          },
+          position = 'bottom',
+          size = 15,
+        },
+      },
       icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
       controls = {
         icons = {
@@ -146,6 +167,53 @@ return {
         -- On Windows delve must be run attached or it crashes.
         -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
         detached = vim.fn.has 'win32' == 0,
+      },
+    }
+    dap.adapters.codelldb = {
+      type = 'server',
+      port = '${port}',
+      executable = {
+        command = 'codelldb',
+        args = { '--port', '${port}' },
+      },
+    }
+
+    -- setup a debugger config for zig projects
+    dap.configurations.zig = {
+      {
+        name = 'Launch (Auto-build)',
+        type = 'codelldb',
+        request = 'launch',
+        program = '${workspaceFolder}/zig-out/bin/${workspaceFolderBasename}',
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+        args = {},
+        preLaunchTask = function()
+          -- Try multiple build command variations for maximum compatibility
+          local build_commands = {
+            { 'zig', 'build' }, -- Default (Debug mode)
+            { 'zig', 'build', '--release=safe' }, -- Current preferred syntax
+            { 'zig', 'build', '-Doptimize=Debug' }, -- Alternative current syntax
+            { 'zig', 'build', '-ODebug' }, -- Direct compiler flag
+            { 'zig', 'build', '-Drelease-safe=false' }, -- Legacy fallback
+          }
+
+          -- For debugging, we want Debug mode, so try in order of preference
+          for _, cmd in ipairs(build_commands) do
+            local handle = vim.system(cmd, {
+              cwd = vim.fn.getcwd(),
+              text = true,
+            })
+            local result = handle:wait()
+            if result.code == 0 then
+              vim.notify('Build successful with: ' .. table.concat(cmd, ' '), vim.log.levels.INFO)
+              return true
+            end
+          end
+
+          vim.notify('All build attempts failed!', vim.log.levels.ERROR)
+          return false
+        end,
       },
     }
   end,

@@ -213,19 +213,19 @@ return {
     --   },
     -- }
 
-    local function load_project_dap_config()
-      local config_file = vim.fn.getcwd() .. '/launch.lua'
-      if vim.fn.filereadable(config_file) == 1 then
-        dofile(config_file)
-        print(string.format('Load project DAP config: %s', config_file))
-      else
-        print 'No DAP config found'
-      end
-    end
+    -- local function load_project_dap_config()
+    --   local config_file = vim.fn.getcwd() .. '/launch.lua'
+    --   if vim.fn.filereadable(config_file) == 1 then
+    --     dofile(config_file)
+    --     print(string.format('Load project DAP config: %s', config_file))
+    --   else
+    --     print 'No DAP config found'
+    --   end
+    -- end
 
-    vim.keymap.set('n', '<leader>pc', function()
-      load_project_dap_config()
-      dap.continue()
-    end)
+    -- vim.keymap.set('n', '<leader>pc', function()
+    --   load_project_dap_config()
+    --   dap.continue()
+    -- end, { desc = 'Load DAP configuration: "launch.lua"' })
   end,
 }

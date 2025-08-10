@@ -233,6 +233,7 @@ local function get_python_path()
 
   return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
 end
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run

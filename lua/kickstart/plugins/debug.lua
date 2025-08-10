@@ -10,6 +10,7 @@ return {
   -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
   -- NOTE: And you can specify dependencies as well
+  event = 'VimEnter',
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
@@ -102,7 +103,6 @@ return {
         'codelldb',
       },
     }
-
     -- Dap UI setup
     -- For more information, see |:help nvim-dap-ui|
     dapui.setup {
@@ -177,44 +177,55 @@ return {
         args = { '--port', '${port}' },
       },
     }
+    -- dap.configurations.zig = {
+    --   {
+    --     name = 'Launch (Auto-build)',
+    --     type = 'codelldb',
+    --     request = 'launch',
+    --     program = '${workspaceFolder}/zig-out/bin/${workspaceFolderBasename}',
+    --     cwd = '${workspaceFolder}',
+    --     stopOnEntry = false,
+    --     args = {},
+    --     preLaunchTask = function()
+    --       -- Try multiple build command variations for maximum compatibility
+    --       local build_commands = {
+    --         { 'zig', 'build' }, -- Default (Debug mode)
+    --         { 'zig', 'build', '--release=safe' }, -- Current preferred syntax
+    --         { 'zig', 'build', '-Doptimize=Debug' }, -- Alternative current syntax
+    --         { 'zig', 'build', '-ODebug' }, -- Direct compiler flag
+    --         { 'zig', 'build', '-Drelease-safe=false' }, -- Legacy fallback
+    --       }
+    --       -- For debugging, we want Debug mode, so try in order of preference
+    --       for _, cmd in ipairs(build_commands) do
+    --         local handle = vim.system(cmd, {
+    --           cwd = vim.fn.getcwd(),
+    --           text = true,
+    --         })
+    --         local result = handle:wait()
+    --         if result.code == 0 then
+    --           vim.notify('Build successful with: ' .. table.concat(cmd, ' '), vim.log.levels.INFO)
+    --           return true
+    --         end
+    --       end
+    --       vim.notify('All build attempts failed!', vim.log.levels.ERROR)
+    --       return false
+    --     end,
+    --   },
+    -- }
 
-    -- setup a debugger config for zig projects
-    dap.configurations.zig = {
-      {
-        name = 'Launch (Auto-build)',
-        type = 'codelldb',
-        request = 'launch',
-        program = '${workspaceFolder}/zig-out/bin/${workspaceFolderBasename}',
-        cwd = '${workspaceFolder}',
-        stopOnEntry = false,
-        args = {},
-        preLaunchTask = function()
-          -- Try multiple build command variations for maximum compatibility
-          local build_commands = {
-            { 'zig', 'build' }, -- Default (Debug mode)
-            { 'zig', 'build', '--release=safe' }, -- Current preferred syntax
-            { 'zig', 'build', '-Doptimize=Debug' }, -- Alternative current syntax
-            { 'zig', 'build', '-ODebug' }, -- Direct compiler flag
-            { 'zig', 'build', '-Drelease-safe=false' }, -- Legacy fallback
-          }
+    local function load_project_dap_config()
+      local config_file = vim.fn.getcwd() .. '/launch.lua'
+      if vim.fn.filereadable(config_file) == 1 then
+        dofile(config_file)
+        print(string.format('Load project DAP config: %s', config_file))
+      else
+        print 'No DAP config found'
+      end
+    end
 
-          -- For debugging, we want Debug mode, so try in order of preference
-          for _, cmd in ipairs(build_commands) do
-            local handle = vim.system(cmd, {
-              cwd = vim.fn.getcwd(),
-              text = true,
-            })
-            local result = handle:wait()
-            if result.code == 0 then
-              vim.notify('Build successful with: ' .. table.concat(cmd, ' '), vim.log.levels.INFO)
-              return true
-            end
-          end
-
-          vim.notify('All build attempts failed!', vim.log.levels.ERROR)
-          return false
-        end,
-      },
-    }
+    vim.keymap.set('n', '<leader>pc', function()
+      load_project_dap_config()
+      dap.continue()
+    end)
   end,
 }

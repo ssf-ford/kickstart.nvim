@@ -248,7 +248,6 @@ end
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -737,7 +736,6 @@ require('lazy').setup({
         'stylua', -- Used to format Lua code
         'prettier', -- Used to format web development related, e.g. TS, JS, Markdown, css, etc.
         'black', -- Python
-        'tailwindcss',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -773,6 +771,7 @@ require('lazy').setup({
       },
     },
     opts = {
+      log_level = vim.log.levels.DEBUG,
       notify_on_error = false,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
@@ -793,8 +792,8 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         python = { 'black' },
-        javascript = { 'prettier', 'tailwindcss' },
-        typescript = { 'prettier', 'tailwindcss' },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
         markdown = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },

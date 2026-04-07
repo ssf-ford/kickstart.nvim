@@ -153,6 +153,9 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = true
 
+-- Load project-local .nvim.lua if present (safe: prompts on first load)
+vim.opt.exrc = true
+
 -- Minimal number of screen lines to keep above and below the cursor.
 -- vim.opt.scrolloff = 10
 
@@ -801,7 +804,9 @@ require('lazy').setup({
         lua = { 'stylua' },
         python = { 'black' },
         javascript = { 'prettier' },
+        javascriptreact = { 'prettier' },
         typescript = { 'prettier' },
+        typescriptreact = { 'prettier' },
         markdown = { 'prettier' },
         xml = { 'xmlformatter' },
         -- Conform can also run multiple formatters sequentially
@@ -978,7 +983,23 @@ require('lazy').setup({
     build = ':TSUpdate',
     branch = 'main',
     opts = {
-      ensure_installed = { 'bash', 'c', 'comment', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'comment',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'typescript',
+        'javascript',
+        'tsx',
+      },
       auto_install = true,
       highlight = {
         enable = true,
